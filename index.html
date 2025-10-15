@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Realistic Fur Demo</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #111;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
+  camera.position.z = 5;
+
+  const renderer = new THREE.WebGLRenderer({antialias: true});
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  const light = new THREE.DirectionalLight(0xffffff, 1);
+  light.position.set(5, 5, 5);
+  scene.add(light);
+  scene.add(new THREE.AmbientLight(0x404040));
+
+  const furTexture = new THREE.TextureLoader().load('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P8z8BQDwAFjQLr1Zs2EwAAAABJRU5ErkJggg==');
+
+  const baseGeometry = new THREE.SphereGeometry(1, 32, 32);
+  const furLayers = 20;
+
+  for (let i = 0; i < furLayers; i++) {
+    const layerScale = 1 + (i / furLayers) * 0.5;
+    const layerGeometry = baseGeometry.clone();
+    layerGeometry.scale(layerScale, layerScale, layerScale);
+
+    const layerMaterial = new THREE.MeshLambertMaterial({
+      map: furTexture,
+      transparent: true,
+      opacity: 0.9 - (i / furLayers),
+      side: THREE.DoubleSide
+    });
+
+    const layerMesh = new THREE.Mesh(layerGeometry, layerMaterial);
+    scene.add(layerMesh);
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    scene.rotation.y += 0.001;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
+</body>
+</html>
